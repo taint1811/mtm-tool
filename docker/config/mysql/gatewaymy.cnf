@@ -1,0 +1,3 @@
+[mysqld]
+max_allowed_packet=32M
+innodb_buffer_pool_size=20M

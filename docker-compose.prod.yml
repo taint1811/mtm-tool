@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: ${APP_NAME:?err}-php
+    build:
+      context: ./docker/config
+      dockerfile: php.prod.Dockerfile
+      args:
+        FOLDER_NAME: ${FOLDER_NAME:?err}
+    volumes:
+      - ./:/data/www/${FOLDER_NAME:?err}
+      - ./docker/config/custom.ini:/usr/local/etc/php/conf.d/custom.ini
+      - ./docker/config/supervisor/supervisord.conf:/etc/supervisord.conf
+
+    depends_on:
+      - redis
+    # user: 1001:1001
+
+  varnish:
+    restart: always
+    container_name: ${APP_NAME:?err}-varnish
+    build:
+      context: ./docker/config/varnish
+      dockerfile: varnish.Dockerfile
+    ports:
+      - "${PORT_VARNISH_60:?err}:80"
+      # - "4${PORT_VARNISH_60:?err}:443"
+    links:
+      - nginx
+    networks:
+      - backend
+      - dockerhaproxy_proxy
+
+
+  redis:
+    container_name: ${APP_NAME:?err}-redis
+    volumes:
+        - ./docker/data/redis:/data
+        - ./docker/config/redis.conf:/usr/local/etc/redis/redis.conf
+    user: 1001:1001
+    healthcheck:
+      test: ["CMD", "redis-cli","ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  mariadb:
+    image: mariadb:10.1
+    restart: always
+    container_name: ${APP_NAME:?err}-mariadb101
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?err}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:?err}
+      MYSQL_USER: ${MYSQL_USER:?err}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:?err}
+    ports:
+      - "${MYSQL_PORT:?err}:3306"
+    networks:
+      - backend
+    volumes:
+        - ./docker/data/mysql/dbdata:/var/lib/mysql'
+        - ./docker/config/mysql:/etc/mysql/conf.d/
+
+
+  

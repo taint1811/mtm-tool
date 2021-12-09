@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+
+  # service for code
+  app:
+    restart: always
+    # networks:
+    #     - backend     
+
+  # service for cache    
+  # varnish:
+  #   build: ../varnish
+  #   networks:
+  #     - backend
+  #     - dockerhaproxy_proxy
+  #   ports:
+  #     - "${PORT_VARNISH_60:?err}:80"
+  #     # - "4${PORT_VARNISH_60:?err}:443"
+  #   depends_on:
+  #     - nginx
+        
+  redis:
+    restart: always
+    image: redis:6.0-alpine
+    expose:
+        - "${PORT_REDIS_63:?err}"
+    # networks:
+    #     - backend
+          
+  # service for db
+  # use host db or other machine    
+  # mariadb:
+  #   image: mariadb:10.1
+  #   restart: always
+  #   ports:
+  #     - "3333:3306"
+  #   networks:
+  #       - backend
+
+ 
